@@ -72,10 +72,19 @@ guess.**
 | `python3` | present, 3.14.6 | via the Xcode tools the kit installs — use this |
 | `curl`, `zip` | `/usr/bin` | system, always there |
 
-**The whole suite has been run on that box, not just read about**: 51/51 on macOS 26.5.2 arm64,
-2026-08-13, the repo copied over and `bash test/check.sh` run in a temp dir. Do that again after any
-change to `collect.py` — this is a Linux box and the guests are all on Macs, so a green run here is
-half an answer.
+**The whole suite has been run on that box, not just read about**: **60/60 on macOS 26.5.2 arm64,
+2026-08-13**, the repo copied over and `bash test/check.sh` run in a temp dir. Do that again after
+any change to `collect.py` — this is a Linux box and the guests are all on Macs, so a green run here
+is half an answer. **This note went stale within hours the first time** (it claimed 51/51 while the
+suite had grown to 60 and `collect.py` had moved twice); if you change the script and do not re-run,
+delete the number rather than leave a figure that reads as verified.
+
+**That run used `/usr/bin/python3` 3.9.6, not the Homebrew 3.14 in the table above** — a
+non-interactive `ssh` never sources `~/.zprofile`, so it got Apple's stock interpreter. That is a
+better test than the one intended: **3.9 is what a guest has** from the Xcode Command Line Tools,
+Homebrew python being no part of the kit. So `collect.py` must stay 3.9-compatible — no `match`, no
+`X | Y` unions, no 3.10+ syntax. If a future run reports 3.14, the PATH leaked and the weaker
+interpreter went untested.
 
 ## Two commands that would have shipped broken
 
@@ -102,8 +111,11 @@ network, no install.
 
 These are the load-bearing lines. `test/check.sh` pins each one, and `test/fixture.py` builds a
 fake `~/.claude/projects` where everything that must not travel carries a `CANARY_` string — so
-"did the thinking block leak" is a grep, not an opinion. **Mutation-tested: making `collect.py`
-emit `thinking` blocks does turn that check red.**
+"did the thinking block leak" is a grep, not an opinion. **Mutation-tested 2026-08-13** — the
+assistant filter was changed to accept `thinking` blocks in a scratch copy, and the suite went
+`59 passed, 1 failed` naming `CANARY_THINKING_BLOCK`. Re-do that rather than trust this sentence —
+a canary check nobody has ever seen go red is decoration, and this repo has already shipped one of
+those.
 
 - **Six hours, narrower on request, never wider.** If the window is empty it **stops**. This is
   deliberately the opposite of `/mwk-genie:learning`, which widens when today is empty. Do not let
