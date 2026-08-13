@@ -103,6 +103,14 @@ emit `thinking` blocks does turn that check red.**
   `~/.ssh/config`.
 - **Drop the whole exchange, do not redact and keep.** Mate's call: if it touches a password, it is
   not shared. Redacting leaves the shape of the thing and invites a judgement call per line.
+- **The word is a flag; the word beside a value is a drop.** Mate's call, 2026-08-13, after a dry
+  run on a real session: dropping on the bare word "password" took out **3 of 12 exchanges and not
+  one of them held a secret** — the agent had been saying "password" while explaining this very
+  tool. Any show where somebody explains what a thing does hits this. So `collect.py` drops on
+  `password: hunter2`, `my password`, `password is hunter2` and every concrete key shape, and
+  **flags** a bare mention for the agent to read. **The agent's own rule in `COLLECT.md` section 5
+  did not loosen** — it still drops the whole exchange for anything that so much as refers to a
+  credential. The net got a wider mesh; the review did not.
 - **Report the count of dropped exchanges.** An invisible omission is worse than the omission.
 - **Projects stay apart.** Separate projects are separate subjects and separate consent.
 - **Consent names every project and waits for a yes.** No is a fine outcome and the folder stays.

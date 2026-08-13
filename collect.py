@@ -37,8 +37,6 @@ MAX_MINUTES = 360
 #
 # This is a net, not the review. COLLECT.md section 4 is the review.
 DROP_PATTERNS = [
-    ("a password or passphrase", r"pass(?:word|wd|phrase)"),
-    ("a credential", r"\bcredentials?\b"),
     ("a private key", r"private key|BEGIN [A-Z ]*PRIVATE KEY"),
     ("a .env file", r"(?:^|[\s/\"'`])\.env\b"),
     ("an ssh config or key", r"\.ssh/|\bssh[ _-]?config\b|id_(?:rsa|ed25519)"),
@@ -49,20 +47,30 @@ DROP_PATTERNS = [
     ("a Slack token", r"\bxox[abprs]-[A-Za-z0-9-]{10,}"),
     ("a long hex string", r"\b[A-Fa-f0-9]{40,}\b"),
     ("a one-time code", r"\b(?:2fa|otp|one[- ]time (?:code|password))\b"),
-    # "token: abc", "api_key=xyz", "the token is 8f2c…" — the word beside a
+    # "token: abc", "api_key=xyz", "the password is hunter2" — the word beside a
     # value. Deliberately NOT the bare word: this runs after a show about
-    # building software, where "the token limit" and "an API key goes here" are
-    # ordinary sentences, and a net that eats those hands back an empty bundle.
-    # Bare mentions are flagged for the agent to read instead.
+    # building software, where "the token limit" and "it drops anything with a
+    # password in it" are ordinary sentences. Measured on a real session, 2026-
+    # 08-13: dropping on the bare word took out 3 of 12 exchanges and not one of
+    # them held a secret — the agent had simply said "password" while explaining
+    # this tool. Bare mentions are flagged for the agent to read instead.
     ("a named secret with a value",
-     r"\b(?:api[ _-]?key|access[ _-]?key|secret|token)s?\b[^\n]{0,20}[:=]\s*\S"),
+     r"\b(?:api[ _-]?key|access[ _-]?key|secret|token|password|passwd|passphrase"
+     r"|credential)s?\b[^\n]{0,20}[:=]\s*\S"),
+    # Tight for the key family: a gap here would eat "the token limit was
+    # exceeded", which is a sentence people say on camera all day.
     ("a named secret with a value",
      r"\b(?:api[ _-]?key|access[ _-]?key|secret|token)s?\b\s+(?:is|was)\s+\S{6,}"),
+    # A short gap for the password family: "asks for a password, it is hunter2".
+    ("a password with a value",
+     r"\b(?:password|passwd|passphrase|credential)s?\b[^\n]{0,15}\b(?:is|was)\s+\S{4,}"),
     ("a named secret",
-     r"\b(?:my|your)\s+(?:api[ _-]?key|access[ _-]?key|secret|token)\b"),
+     r"\b(?:my|your|his|her|their)\s+"
+     r"(?:api[ _-]?key|access[ _-]?key|secret|token|password|passphrase|credential)s?\b"),
 ]
 
 FLAG_PATTERNS = [
+    ("mentions a password or a credential", r"\b(?:pass(?:word|wd|phrase)|credential)s?\b"),
     ("mentions a key, token or secret", r"\b(?:api[ _-]?key|secret|token)s?\b"),
     ("holds a long opaque string", r"\b(?![A-Za-z]+\b)[A-Za-z0-9_-]{24,}\b"),
 ]

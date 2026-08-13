@@ -96,6 +96,15 @@ def build(root):
         typed(60, one, "why does it say the token limit was exceeded?"),
         answer(59, one, [{"type": "text", "text": "That is the model's context window, not a key."}]),
 
+        # Kept, but flagged. Measured on a real session 2026-08-13: dropping on
+        # the bare word took out a quarter of the conversation, all of it
+        # harmless, because the agent kept saying "password" while explaining
+        # what this tool does. The word is a flag; a value beside it is a drop.
+        typed(58, one, "does the timer store a password anywhere?"),
+        answer(57, one, [{"type": "text",
+                          "text": "No. And if it did, the collector drops the whole exchange "
+                                  "when it sees a password in it."}]),
+
         # None of these are a typed prompt.
         base("user", 55, one, isMeta=True, promptSource="typed",
              message={"role": "user", "content": "<local-command-caveat>%s" % CANARIES["meta"]}),

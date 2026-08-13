@@ -171,7 +171,15 @@ PY
 grep -q 'token limit' -r "$tmp/out" 2>/dev/null \
   && ok "talking about tokens is not treated as carrying one" \
   || bad "the secret net ate an ordinary sentence about tokens"
-grep -q 'a password or passphrase' "$tmp/report.txt" \
+# Same for the word "password" — measured on a real session, dropping on the
+# bare word cost a quarter of the conversation and caught nothing.
+grep -q 'store a password anywhere' -r "$tmp/out" 2>/dev/null \
+  && ok "talking about passwords is not treated as having one" \
+  || bad "the secret net ate an ordinary sentence about passwords"
+grep -q 'hunter2' -r "$tmp/out" 2>/dev/null \
+  && bad "an actual password value travelled" \
+  || ok "a password beside a value is still dropped"
+grep -q 'a password with a value' "$tmp/report.txt" \
   && ok "the password exchange was dropped, and said so" \
   || bad "the password exchange was not reported as dropped"
 grep -qi 'left out' "$tmp/out/00-summary.md" \
