@@ -115,9 +115,11 @@ Read off 1041 real session files on the dev box, not guessed:
   yesterday has old records inside it. `collect.py` filters on **every record's** timestamp, which
   is narrower than the documented `find`, never wider.
 - **`timestamp` is UTC with a `Z`.** Hence the timezone block in `show.json`. The IANA name comes
-  from `TZ` or `/etc/localtime`; **the macOS path for that is unverified** — no Mac was reachable
-  from the dev box. The numeric offset is always right, so a miss degrades to `AEST +10:00` rather
-  than breaking.
+  from `TZ` or `/etc/localtime`. **Verified on the real Mac, 2026-08-13** — `local_timezone()` run
+  unmodified there returns `Australia/Brisbane / AEST / +10:00`. The catch worth keeping: macOS
+  resolves `/etc/localtime` through `/private/var/db/timezone/tz/<version>/zoneinfo/…`, **not**
+  `/usr/share/zoneinfo`, so the split on `zoneinfo/` is load-bearing on that platform and must not
+  be tightened to a fixed prefix.
 
 ## The bugs the guest would have paid for
 

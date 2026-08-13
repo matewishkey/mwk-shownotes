@@ -127,8 +127,12 @@ def local_timezone():
 
     The offset is what actually syncs the notes to the recording and it always
     comes out right. The IANA name is best effort: TZ if it is set, otherwise
-    whatever /etc/localtime points at. Not verified on macOS — if the probe
-    misses there, the abbreviation and offset still stand.
+    whatever /etc/localtime points at.
+
+    Measured on macOS 26, 2026-08-13: /etc/localtime resolves through
+    /private/var/db/timezone/tz/<version>/zoneinfo/Australia/Brisbane, not
+    /usr/share/zoneinfo. Splitting on "zoneinfo/" is what makes it work on
+    both platforms — do not tighten it to a fixed prefix.
     """
     now = datetime.now().astimezone()
     offset = now.utcoffset() or timedelta(0)

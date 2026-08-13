@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+# The collector's output. It is somebody's conversation and it never belongs in
+# a repo, least of all this one — but a guest runs the script from their clone,
+# so say so here rather than trusting that it never lands.
+mwk-show-notes-*/
+show.json
