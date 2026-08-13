@@ -7,10 +7,12 @@ I have just recorded a Mate Wish Key show on this
 computer, and Mate has asked me to send him the notes
 for it.
 
-Read COLLECT.md in this public repo and do exactly
-what it says, in order:
+If ~/projects/mwk-shownotes is already on this machine,
+read COLLECT.md in there. If it is not, read it here:
 
   https://github.com/matewishkey/mwk-shownotes
+
+Then do exactly what it says, in order.
 
 It looks at the last six hours on this machine and
 nothing older. You show me everything before any of it

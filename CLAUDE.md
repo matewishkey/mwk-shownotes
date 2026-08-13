@@ -29,6 +29,24 @@ gates it has. Moving it in there later is a regression, not a convenience.
 **The short-paste-points-at-a-long-file shape is `prompts/setup.md`'s**, from the kit. All the care
 lives in a versioned file; the paste stays short enough not to wrap in a terminal.
 
+## The kit offers the clone. It never installs it
+
+Mate's call, 2026-08-13: *"Ask it if they will be on the show, so they probably have to download.
+some other might use this library, i do not want to enforce it."*
+
+So `mwk-genie`'s `SETUP.md` ends by cloning this repo to `~/projects/mwk-shownotes` — **only for
+somebody who has already said they are coming on a show**, and skipped in silence for everybody
+else. Most people who install that kit are not guests and never will be; a tool for collecting
+somebody's conversations is not something you put in front of them on the off-chance.
+
+That is the same shape as step 13's iTerm2 offer, and `SETUP.md`'s "three things are theirs to
+decide" rule now says so explicitly, so nobody counts it as a fourth question.
+
+**Both paths have to keep working.** `COLLECT.md` looks for `~/projects/mwk-shownotes/collect.py`
+before it downloads anything, and `prompts/notes.md` reads the local `COLLECT.md` when it is there.
+A guest who was set up for a show fetches nothing on the day; anybody else still gets it from a
+single `curl`. Break either half and one of the two populations is stranded.
+
 ## Measured on a real Mac, so nobody re-derives them
 
 Read off the fleet's macOS box on 2026-08-13 (`Darwin arm64`). The guest is almost certainly on a

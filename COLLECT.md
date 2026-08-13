@@ -28,11 +28,24 @@ either.
 
 ## 2. Get the collector
 
+**Look for it before you download it.** If they were set up for a show, it is already on the
+machine and the copy on disk is the one to use:
+
+```
+ls ~/projects/mwk-shownotes/collect.py
+python3 --version
+```
+
+If it is not there, fetch it:
+
 ```
 cd ~
 curl -fsSL https://raw.githubusercontent.com/matewishkey/mwk-shownotes/main/collect.py -o mwk-collect.py
-python3 --version
 ```
+
+**Everything below writes `~/mwk-collect.py`. If you are using the copy that was already here, that
+path is `~/projects/mwk-shownotes/collect.py` instead** — it is the same script, and nothing else
+changes.
 
 It comes from the same public repo as this file, and **if they want to read it before it runs, that
 is the point of it being there.** Show it to them if they ask.
@@ -169,7 +182,9 @@ to, and they can attach it themselves.
 
 It is deliberately not in `~/projects` — it is not a project, and nothing should try to save it.
 
-The collector itself can go: `rm ~/mwk-collect.py`. Nothing else was installed.
+**If you downloaded the collector**, it can go: `rm ~/mwk-collect.py`. Nothing else was installed.
+**If it came from `~/projects/mwk-shownotes`, leave that folder alone** — it was on the machine
+before today and it is not yours to tidy up.
 
 ## If `python3` is not there
 
