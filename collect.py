@@ -6,8 +6,9 @@ mechanical half of COLLECT.md: find the sessions in the window, keep the typed
 prompts and the assistant's answers, throw everything else away, drop anything
 that smells of a credential, and write one file per project with timestamps.
 
-It does NOT decide whether the notes get sent. That is COLLECT.md sections 4, 7
-and 8, and it stays a conversation with the person whose machine this is.
+It does NOT decide whether the notes get sent. That is COLLECT.md sections 5, 8
+and 9 — read it, ask, then send — and it stays a conversation with the person
+whose machine this is.
 
 Stock-Mac rules: python3 stdlib only, no jq, no `date -d`, no network.
 """
@@ -35,7 +36,7 @@ MAX_MINUTES = 360
 # every one of those returns an empty bundle. The words alone are a flag; a word
 # next to a value is a drop.
 #
-# This is a net, not the review. COLLECT.md section 4 is the review.
+# This is a net, not the review. COLLECT.md section 5 is the review.
 # Letter boundaries, not `\b`. `\bapi[ _-]?key` never matches inside
 # GEMINI_API_KEY, because `_` is a word character and there is no boundary in
 # front of API. Measured against 24 real keys on this fleet, 2026-08-13: with

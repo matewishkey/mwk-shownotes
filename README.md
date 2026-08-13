@@ -9,7 +9,8 @@ follow at home — written on the guest's own machine, reviewed by them, sent on
 
 1. Mate hands the guest the prompt in [`prompts/notes.md`](prompts/notes.md).
 2. Their agent reads [`COLLECT.md`](COLLECT.md) and works through it.
-3. It downloads [`collect.py`](collect.py) from this repo and runs it with `python3`.
+3. It uses [`collect.py`](collect.py) — already on the machine if they were set up for a show,
+   downloaded from this repo if not — and runs it with `python3`.
 4. That reads the last **six hours** of conversations on that machine and nothing older.
 5. It keeps what they typed and what the agent answered — **not** the commands, the file contents or
    the tool output.
@@ -35,9 +36,10 @@ timings, for anything that wants to replay the show rather than read it.
 machine, and the only reason that is reasonable is that they just chose to be on a show about it.
 `COLLECT.md` opens by checking exactly that, and stops if the answer is no.
 
-**`collect.py` is a net, not the review.** It catches the shapes — passwords, keys, tokens, home
-paths, email addresses, IP addresses. It cannot tell that "ask Sarah about the invoice" names
-somebody. Reading every exchange is still a job for the person and their agent, and `COLLECT.md`
+**`collect.py` is a net, not the review.** It throws away the whole exchange when it sees the shape
+of a credential — a password beside a value, an API key, a token, a JWT, a pasted private key. Then,
+in what is left, it replaces the home folder, the username, the machine's hostname, email addresses,
+IP addresses and MAC addresses. It cannot tell that "ask Sarah about the invoice" names somebody. Reading every exchange is still a job for the person and their agent, and `COLLECT.md`
 says so at the point where it matters.
 
 For a record of what somebody has learnt, `/mwk-genie:learning` does that on their own machine and
@@ -62,7 +64,7 @@ yet — but `show.json` is the shape to import: exchanges, ids, UTC and local st
 elapsed from the start of the recording.
 
 `scan.py` in that repo is still the net before anything goes public — it cannot run on a guest's
-machine, so the review in step 4 is a person-and-agent job, not a scanned one. Do not assume the
+machine, so the review in step 7 is a person-and-agent job, not a scanned one. Do not assume the
 incoming gist has been through a scanner.
 
 ## Testing

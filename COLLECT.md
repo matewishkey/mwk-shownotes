@@ -65,7 +65,7 @@ prompt instead.
 python3 ~/mwk-collect.py --show-start 14:05
 ```
 
-Everything it can do is in `python3 ~/mwk-collect.py --help`.
+Everything you need is in `python3 ~/mwk-collect.py --help`.
 
 ## 4. What it kept, and what it left behind
 
@@ -102,7 +102,7 @@ python3 ~/mwk-collect.py --show-start 14:05 --drop a1b2c3d4 --drop 9f8e7d6c
 ```
 
 **Real names are the one thing no pattern can catch.** The collector takes out the home folder, the
-username, email addresses, IP addresses and MAC addresses. It cannot know that "ask Sarah about the
+username, the machine's hostname, email addresses, IP addresses and MAC addresses. It cannot know that "ask Sarah about the
 invoice" names somebody. That is yours to find.
 
 A whole project can go with `--drop-project <name>`. Every run rewrites the folder from scratch, so
