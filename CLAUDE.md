@@ -61,6 +61,11 @@ guess.**
 | `python3` | present, 3.14.6 | via the Xcode tools the kit installs — use this |
 | `curl`, `zip` | `/usr/bin` | system, always there |
 
+**The whole suite has been run on that box, not just read about**: 51/51 on macOS 26.5.2 arm64,
+2026-08-13, the repo copied over and `bash test/check.sh` run in a temp dir. Do that again after any
+change to `collect.py` — this is a Linux box and the guests are all on Macs, so a green run here is
+half an answer.
+
 ## Two commands that would have shipped broken
 
 - **`gh gist create` has no `--secret` flag.** Gists are unlisted by default and `--public` is the
