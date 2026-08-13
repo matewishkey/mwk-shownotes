@@ -139,6 +139,12 @@ those.
 - **Consent names every project and waits for a yes.** No is a fine outcome and the folder stays.
 - **Every output carries the time, and the timezone with it.** The records are stamped UTC with a
   `Z`; the show happened on a wall clock. Ship one without the other and nothing syncs to the video.
+- **One zero for the whole show, and `T+` counts from it** — never per project, never per file.
+  Mate's call, 2026-08-13, when asked how far to take video sync: *"just add the timestamps… 0 from
+  overall"*. A slate ritual and chapter files were designed and **declined** as more than the job
+  needs. `--show-start` sets the zero (give it the moment the video starts and `elapsed_seconds` in
+  `show.json` is video position in seconds); without it the zero is the first prompt. Prompts typed
+  before the camera rolled come out as `T-`, which is correct and worth seeing.
 
 ## Three things measured on the real records, 2026-08-13
 
@@ -171,6 +177,37 @@ Both found by testing, both silent, both about consent rather than crashes:
 
 And the send command was wrong from the start: `gh gist create 00-summary.md 01-*.md` only ever
 matched the **first** project. It is `*.md show.json` now.
+
+## Detecting a key is measurement, not intuition
+
+Tuned 2026-08-13 against **the 24 real keys in `~/.secrets`** (shapes only, values never printed)
+and **2363 real prompts and answers** off this box. Do not adjust these patterns by reasoning about
+them — re-run that measurement, the numbers are cheap to reproduce.
+
+**The bug that made the whole thing useless: `\b` does not fire inside `snake_case`.**
+`\bapi[ _-]?key` never matches in `GEMINI_API_KEY`, because `_` is a word character so there is no
+boundary in front of `API`. It caught **2 of 24** keys written as `NAME=value`. Letter lookarounds
+(`(?<![A-Za-z])` / `(?![A-Za-z])`) take it to **23 of 24**. The miss is `CLOUDFLARE_ACCOUNT_ID`,
+which is an account ID and not a key. Bare values: 13 of 24 dropped, **24 of 24 dropped or
+flagged**.
+
+Two things the measurement said *not* to do, and the reasons outlive the numbers:
+
+- **A bare opaque string stays a flag.** Dropping on a 32-character run eats UUIDs, migration
+  filenames and snapshot names — 0.34% of real texts, none of them keys.
+- **Prose `token is X` was deleted.** It cost ``token is `iterm2` `` and caught nothing the
+  `NAME=value` rule had not already caught.
+
+`sk-`, `cfut_` and `sntryu_` were read off real keys here; the other vendor prefixes are the
+published ones. **The Discord alert webhooks are a URL with the credential in the path** — that is
+why the URL rule exists, and it is not hypothetical.
+
+## The send path is verified, once, end to end
+
+Run 2026-08-13 with fixture data and deleted straight after. `gh gist create *.md show.json` puts
+**all four files** in (the old `01-*.md` sent one and silently left the rest), lands **secret/
+unlisted**, and an anonymous fetch of the link returns 200 — so the person Mate sends it to can
+actually read it. Nothing else in `COLLECT.md` is now untested except a real guest on the day.
 
 ## The pattern to be suspicious of
 
