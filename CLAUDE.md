@@ -50,10 +50,26 @@ guess.**
 - **The project folder name is not reversible.** `~/.claude/projects/<folder>` is the path with
   slashes turned to dashes, and it is lossy — read `cwd` out of the records instead.
 
+## The split: `collect.py` is the net, `COLLECT.md` is the review
+
+Mate's call, 2026-08-13, reversing the original "no script at all". The mechanical half — find the
+sessions, keep the typed prompts and the assistant text, drop the credential shapes, stamp the
+times — is `collect.py`. The judgement half stays prose, because it is judgement: **real names are
+the thing no pattern catches**, and consent is a conversation.
+
+Say that split out loud wherever it matters. An agent that thinks the script did the review will
+skip the review.
+
+**The script must stay readable by the guest**, because "the repo is public and they can read it
+before they run it" is one of the things keeping this off the phishing pile. Stdlib only, no
+network, no install.
+
 ## The rules that are the product
 
-`COLLECT.md` is not a script, it is a review procedure, and these are the load-bearing lines.
-`test/check.sh` pins each one:
+These are the load-bearing lines. `test/check.sh` pins each one, and `test/fixture.py` builds a
+fake `~/.claude/projects` where everything that must not travel carries a `CANARY_` string — so
+"did the thinking block leak" is a grep, not an opinion. **Mutation-tested: making `collect.py`
+emit `thinking` blocks does turn that check red.**
 
 - **Six hours, narrower on request, never wider.** If the window is empty it **stops**. This is
   deliberately the opposite of `/mwk-genie:learning`, which widens when today is empty. Do not let
@@ -67,6 +83,38 @@ guess.**
 - **Report the count of dropped exchanges.** An invisible omission is worse than the omission.
 - **Projects stay apart.** Separate projects are separate subjects and separate consent.
 - **Consent names every project and waits for a yes.** No is a fine outcome and the folder stays.
+- **Every output carries the time, and the timezone with it.** The records are stamped UTC with a
+  `Z`; the show happened on a wall clock. Ship one without the other and nothing syncs to the video.
+
+## Three things measured on the real records, 2026-08-13
+
+Read off 1041 real session files on the dev box, not guessed:
+
+- **`promptSource: 'typed'` is exactly right.** Out of the user records that carry text: 43 `typed`,
+  13 slash-command scaffolding, 9 `isMeta` local-command caveats, 8 `system`/`sdk` task
+  notifications. The one field separates the human from the machinery.
+- **A fresh file is not a fresh conversation.** `-mmin -360` finds files; a session left open since
+  yesterday has old records inside it. `collect.py` filters on **every record's** timestamp, which
+  is narrower than the documented `find`, never wider.
+- **`timestamp` is UTC with a `Z`.** Hence the timezone block in `show.json`. The IANA name comes
+  from `TZ` or `/etc/localtime`; **the macOS path for that is unverified** — no Mac was reachable
+  from the dev box. The numeric offset is always right, so a miss degrades to `AEST +10:00` rather
+  than breaking.
+
+## The bugs the guest would have paid for
+
+Both found by testing, both silent, both about consent rather than crashes:
+
+- **`show.json` shipped unscrubbed.** Scrubbing ran at markdown-render time, so the JSON in the same
+  gist still carried the email address and the IP the markdown had replaced. Scrub once, in place,
+  before anything is written — `scrub_exchanges()` — so the person reviews the exact words that
+  travel.
+- **A dropped project left its file behind.** Re-running after `--drop-project` wrote the new set
+  but the stale `02-*.md` stayed on disk, and `gh gist create` globs the folder. They say "not that
+  one" and it goes anyway. Every run now clears its own previous output first.
+
+And the send command was wrong from the start: `gh gist create 00-summary.md 01-*.md` only ever
+matched the **first** project. It is `*.md show.json` now.
 
 ## The pattern to be suspicious of
 

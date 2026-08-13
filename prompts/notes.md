@@ -23,6 +23,9 @@ I say yes.
 It reads the conversations from the last six hours, takes out anything that should not travel,
 writes up what you built — one file per project, kept separate — and shows you the lot.
 
+It will ask **what time the recording started**. That is so the notes carry a clock Mate can line up
+against the video; if you do not know, say so and it carries on without it.
+
 Then it asks. You can drop any project by name, or say no and nothing goes anywhere.
 
 If you say yes it puts the notes in an unlisted gist on your own GitHub account and gives you the
