@@ -47,6 +47,17 @@ before it downloads anything, and `prompts/notes.md` reads the local `COLLECT.md
 A guest who was set up for a show fetches nothing on the day; anybody else still gets it from a
 single `curl`. Break either half and one of the two populations is stranded.
 
+**It lands in `~/projects/mwk-shownotes`, in the open, and that is the decision** (mate's call,
+2026-08-13, asked directly). The objection is real and was put to him: `SETUP.md` step 1 introduces
+`~/projects` as *"a folder for their work"*, and this makes two folders in there that are ours
+rather than theirs. It stays anyway, because the kit already spends one of those on
+`~/projects/mwk-genie`, and because **a guest being able to open the folder and read what is about
+to collect their conversations is the same argument that makes this repo public.** A hidden
+`~/.mwk-shownotes` would buy tidiness by taking that away. Do not move it there.
+
+It is a **sibling**, never nested inside `mwk-genie` — a repo inside another repo's working tree
+confuses every tool that looks, and the guest's machine gets the same flat layout as ours.
+
 ## Measured on a real Mac, so nobody re-derives them
 
 Read off the fleet's macOS box on 2026-08-13 (`Darwin arm64`). The guest is almost certainly on a
