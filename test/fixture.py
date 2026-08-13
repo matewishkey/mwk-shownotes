@@ -21,6 +21,11 @@ CANARIES = {
     "command": "CANARY_SLASH_COMMAND",
     "old": "CANARY_OUT_OF_WINDOW",
     "secret": "CANARY_SECRET_EXCHANGE",
+    "envkey": "CANARY_ENV_API_KEY",
+    "vendorkey": "CANARY_VENDOR_TOKEN",
+    "webhook": "CANARY_WEBHOOK_URL",
+    "jwt": "CANARY_JWT",
+    "pem": "CANARY_PRIVATE_KEY",
     "untyped": "CANARY_UNTYPED",
 }
 
@@ -104,6 +109,44 @@ def build(root):
         answer(57, one, [{"type": "text",
                           "text": "No. And if it did, the collector drops the whole exchange "
                                   "when it sees a password in it."}]),
+
+        # API keys, the four shapes that matter. Values are invented and match
+        # the published prefixes; each carries a canary so a leak is a grep.
+        # No vendor prefix on purpose: this one has to be caught by the name
+        # beside the value, which is the rule that `\b` used to break inside
+        # WIDGET_API_KEY.
+        typed(50, one, "here is my env, why does it fail\nWIDGET_API_KEY=%s\n%s"
+                       % ("Zx9QwErTyUiOpAsDfGhJkLzXcVbNm0", CANARIES["envkey"])),
+        answer(49, one, [{"type": "text", "text": "Reading it now, %s" % CANARIES["envkey"]}]),
+
+        typed(48, one, "the CI token ghp_FakeGitHubTokenValue000000000000000 stopped working %s"
+                       % CANARIES["vendorkey"]),
+        answer(47, one, [{"type": "text", "text": "Rotate it. %s" % CANARIES["vendorkey"]}]),
+
+        typed(46, one, "alerts go to https://discord.com/api/webhooks/123456789012345678/"
+                       "FakeWebhookTokenValue00000000000 %s" % CANARIES["webhook"]),
+        answer(45, one, [{"type": "text", "text": "That URL is the credential. %s"
+                                                  % CANARIES["webhook"]}]),
+
+        typed(44, one, "it returns eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWtlIn0."
+                       "FakeSignatureValue00000 and then 401s %s" % CANARIES["jwt"]),
+        answer(43, one, [{"type": "text", "text": "The signature is stale. %s" % CANARIES["jwt"]}]),
+
+        typed(40, one, "ssh broke, here is the file\n-----BEGIN OPENSSH PRIVATE KEY-----\n"
+                       "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAA %s\n"
+                       "-----END OPENSSH PRIVATE KEY-----" % CANARIES["pem"]),
+        answer(39, one, [{"type": "text", "text": "Never paste that. %s" % CANARIES["pem"]}]),
+
+        # Kept: talking about private keys without pasting one.
+        typed(38, one, "does it handle a private key if one shows up?"),
+        answer(37, one, [{"type": "text", "text": "It drops the whole exchange when it sees one."}]),
+
+        # Kept: OAuth talk that names credentials without carrying any. This is
+        # the exact sentence shape that cost 8 false drops before the gap before
+        # "is" was tightened and a digit required in the value.
+        typed(42, one, "should I use the client credentials grant here?"),
+        answer(41, one, [{"type": "text",
+                          "text": "The `client_credentials` grant is server-to-server, so yes."}]),
 
         # None of these are a typed prompt.
         base("user", 55, one, isMeta=True, promptSource="typed",

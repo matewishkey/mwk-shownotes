@@ -182,6 +182,29 @@ grep -q 'hunter2' -r "$tmp/out" 2>/dev/null \
 grep -q 'a password with a value' "$tmp/report.txt" \
   && ok "the password exchange was dropped, and said so" \
   || bad "the password exchange was not reported as dropped"
+
+# API keys, the four shapes that matter. Measured against 24 real keys on this
+# fleet: an env paste is caught 23 times out of 24, and every one of the 24 is
+# at least flagged when it appears bare.
+for shape in "a named secret with a value:an env paste (NAME=key)" \
+             "a vendor API key:a key with a vendor prefix" \
+             "a URL with a credential in it:a webhook URL" \
+             "a JWT:a JWT"; do
+  reason=${shape%%:*}; label=${shape#*:}
+  grep -q "$reason" "$tmp/report.txt" \
+    && ok "$label is dropped" \
+    || bad "$label was NOT dropped"
+done
+grep -q 'a private key block' "$tmp/report.txt" \
+  && ok "a pasted private key block is dropped" \
+  || bad "a pasted private key block was NOT dropped"
+grep -q 'handle a private key if one shows up' -r "$tmp/out" 2>/dev/null \
+  && ok "saying \"private key\" out loud is not carrying one" \
+  || bad "the net ate an ordinary sentence about private keys"
+# The OAuth sentence that cost 8 false drops before the gap was tightened.
+grep -q 'client credentials grant' -r "$tmp/out" 2>/dev/null \
+  && ok "talking about credentials is not treated as carrying one" \
+  || bad "the net ate an ordinary sentence about OAuth credentials"
 grep -qi 'left out' "$tmp/out/00-summary.md" \
   && ok "the summary reports what was left out" \
   || bad "the summary hides what was left out"

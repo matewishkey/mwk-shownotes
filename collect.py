@@ -36,43 +36,90 @@ MAX_MINUTES = 360
 # next to a value is a drop.
 #
 # This is a net, not the review. COLLECT.md section 4 is the review.
+# Letter boundaries, not `\b`. `\bapi[ _-]?key` never matches inside
+# GEMINI_API_KEY, because `_` is a word character and there is no boundary in
+# front of API. Measured against 24 real keys on this fleet, 2026-08-13: with
+# `\b`, 2 of 24 were caught when written as `NAME=value`; with these, 23 of 24.
+_L = r"(?<![A-Za-z])"
+_R = r"(?![A-Za-z])"
+_CRED = (r"(?:api[ _-]?key|access[ _-]?key|secret[ _-]?key|auth[ _-]?token"
+         r"|access[ _-]?token|api[ _-]?token|secret|token|password|passwd"
+         r"|passphrase|credential)")
+
 DROP_PATTERNS = [
-    ("a private key", r"private key|BEGIN [A-Z ]*PRIVATE KEY"),
+    # The block itself, not the phrase. Saying "private key" out loud while
+    # explaining a thing is not carrying one — same rule as password and token,
+    # and it cost 2 real exchanges the day it was written.
+    ("a private key block", r"BEGIN [A-Z ]*PRIVATE KEY|-----BEGIN|id_(?:rsa|ed25519)\s*[:=]"),
     ("a .env file", r"(?:^|[\s/\"'`])\.env\b"),
     ("an ssh config or key", r"\.ssh/|\bssh[ _-]?config\b|id_(?:rsa|ed25519)"),
     ("an auth header", r"\bbearer\s+[A-Za-z0-9._-]{8,}|authorization:\s*\S"),
-    ("an AWS key", r"\bAKIA[0-9A-Z]{16}\b|aws_(?:access|secret)_"),
-    ("a GitHub token", r"\bgh[pousr]_[A-Za-z0-9]{16,}|\bgithub_pat_[A-Za-z0-9_]{20,}"),
-    ("an OpenAI-shaped key", r"\bsk-[A-Za-z0-9_-]{20,}"),
-    ("a Slack token", r"\bxox[abprs]-[A-Za-z0-9-]{10,}"),
-    ("a long hex string", r"\b[A-Fa-f0-9]{40,}\b"),
+    ("an AWS key", r"aws_(?:access|secret)_"),
     ("a one-time code", r"\b(?:2fa|otp|one[- ]time (?:code|password))\b"),
-    # "token: abc", "api_key=xyz", "the password is hunter2" — the word beside a
-    # value. Deliberately NOT the bare word: this runs after a show about
-    # building software, where "the token limit" and "it drops anything with a
-    # password in it" are ordinary sentences. Measured on a real session, 2026-
-    # 08-13: dropping on the bare word took out 3 of 12 exchanges and not one of
-    # them held a secret — the agent had simply said "password" while explaining
-    # this tool. Bare mentions are flagged for the agent to read instead.
+    ("a long hex string", r"\b[A-Fa-f0-9]{40,}\b"),
+
+    # A key with a vendor's fingerprint on the front. `sk-`, `cfut_` and
+    # `sntryu_` were read off real keys on this fleet; the rest are the
+    # published prefixes. This is the high-precision tier — a string in this
+    # shape is a key, there is no innocent reading.
+    ("a vendor API key",
+     r"(?<![A-Za-z0-9])(?:sk-[A-Za-z0-9_-]{16,}|sk_live_[A-Za-z0-9]{16,}"
+     r"|pk_live_[A-Za-z0-9]{16,}|rk_live_[A-Za-z0-9]{16,}|cfut_[A-Za-z0-9_-]{16,}"
+     r"|sntryu_[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{16,}"
+     r"|github_pat_[A-Za-z0-9_]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}"
+     r"|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|AIza[A-Za-z0-9_-]{30,}|hf_[A-Za-z0-9]{20,}"
+     r"|npm_[A-Za-z0-9]{30,}|glpat-[A-Za-z0-9_-]{16,}|shpat_[a-f0-9]{32}"
+     r"|SG\.[A-Za-z0-9_-]{20,}|dop_v1_[a-f0-9]{32}|sbp_[a-f0-9]{40}"
+     r"|AC[a-f0-9]{32}|SK[a-f0-9]{32})"),
+    ("a JWT",
+     r"(?<![A-Za-z0-9])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"),
+    # A webhook or a URL with the credential in the query string. The Discord
+    # alert webhooks on this fleet are exactly this shape.
+    ("a URL with a credential in it",
+     r"https?://[^\s]*(?:/webhooks?/\d+/[A-Za-z0-9_-]{20,}"
+     r"|[?&](?:api[_-]?key|key|token|access[_-]?token|auth|secret|password)"
+     r"=[A-Za-z0-9_\-\.]{8,})"),
+
+    # A credential-ish name assigned a long value: `GEMINI_API_KEY=...`,
+    # `token: abc…`. This is the one that catches an env paste.
     ("a named secret with a value",
-     r"\b(?:api[ _-]?key|access[ _-]?key|secret|token|password|passwd|passphrase"
-     r"|credential)s?\b[^\n]{0,20}[:=]\s*\S"),
-    # Tight for the key family: a gap here would eat "the token limit was
-    # exceeded", which is a sentence people say on camera all day.
-    ("a named secret with a value",
-     r"\b(?:api[ _-]?key|access[ _-]?key|secret|token)s?\b\s+(?:is|was)\s+\S{6,}"),
-    # A short gap for the password family: "asks for a password, it is hunter2".
+     _L + _CRED + r"s?" + _R + r"[A-Za-z0-9_\-]{0,20}\s*[:=]\s*[\"']?[A-Za-z0-9_\-\.\+/=]{16,}"),
+
+    # The word beside a value in prose. Deliberately NOT the bare word: this
+    # runs after a show about building software, where "the token limit" and
+    # "it drops anything with a password in it" are ordinary sentences.
+    # Measured on a real session, 2026-08-13: dropping on the bare word took out
+    # 3 of 12 exchanges and not one held a secret — the agent had simply said
+    # "password" while explaining this tool. Bare mentions are flagged instead.
+    # "asks for a password, it is hunter2". Two guards, both measured: the gap
+    # before "is" is at most 6 characters, and the value must contain a digit.
+    # Without them this eats `client_credentials` grant, which is
+    # server-to-server` — 8 hits in 2363 real texts, every one of them harmless
+    # OAuth talk. The prose form for the key family was removed outright: it
+    # cost "token is `iterm2`" and caught none of the 24 real keys that the
+    # NAME=value rule above had not already caught.
     ("a password with a value",
-     r"\b(?:password|passwd|passphrase|credential)s?\b[^\n]{0,15}\b(?:is|was)\s+\S{4,}"),
+     _L + r"(?:password|passwd|passphrase|credential)s?" + _R
+     + r"[^\n]{0,6}\b(?:is|was)\s+[\"'`]?(?=\S*[0-9])\S{4,}"),
     ("a named secret",
-     r"\b(?:my|your|his|her|their)\s+"
-     r"(?:api[ _-]?key|access[ _-]?key|secret|token|password|passphrase|credential)s?\b"),
+     r"\b(?:my|your|his|her|their)\s+" + _CRED + r"s?" + _R),
 ]
 
 FLAG_PATTERNS = [
     ("mentions a password or a credential", r"\b(?:pass(?:word|wd|phrase)|credential)s?\b"),
-    ("mentions a key, token or secret", r"\b(?:api[ _-]?key|secret|token)s?\b"),
+    ("mentions a private key", r"private key"),
+    ("mentions a key, token or secret", _L + r"(?:api[ _-]?key|secret|token)s?" + _R),
+    # Deliberately a flag and not a drop. Measured over 2359 real prompts and
+    # answers: an opaque run of 32+ is a UUID, a migration filename or a
+    # snapshot name far more often than it is a key. Dropping on it would eat
+    # real content; showing it to the agent costs nothing.
     ("holds a long opaque string", r"\b(?![A-Za-z]+\b)[A-Za-z0-9_-]{24,}\b"),
+    # Dotted keys break the run above into segments too short to notice. One
+    # real key on this fleet is exactly that shape. Costs 0.42% of texts, all
+    # of them SQL identifiers a reader dismisses at a glance.
+    ("holds a dotted opaque string",
+     r"(?<![A-Za-z0-9/_.-])(?=[A-Za-z0-9_.-]*[0-9])[A-Za-z0-9_-]{6,}"
+     r"(?:\.[A-Za-z0-9_-]{6,})+(?![A-Za-z0-9])"),
 ]
 
 # ---------------------------------------------------------------------------
